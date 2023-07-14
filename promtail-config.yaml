@@ -1,0 +1,45 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: system
+    static_configs:
+      - targets:
+          - loki
+        labels:
+          job: myservice
+          app: myservice
+          applicationType: nodejs
+          __path__: /var/log/*log
+    pipeline_stages:
+      - match:
+          selector: '{applicationType="nodejs"}'
+          stages:
+            - docker: {}
+            - regex:
+                expression: ^(\S+\[\S+m)+\[(?P<time>\d{4}-\d{2}-\d{2}T\d{1,2}:\d{2}:\d{2}.\d{3})\] \[(?P<level>\S+)\] \S+ - (\S+\[\S+m)+(?P<message>.*)
+                source: output
+            - multiline:
+                firstline: ^(\S+\[\S+m)+\[(?P<time>\d{4}-\d{2}-\d{2}T\d{1,2}:\d{2}:\d{2}.\d{3})\]
+                max_wait_time: 3s
+            - labels:
+                level:
+      - match:
+          selector: '{applicationType="java"}'
+          stages:
+            - docker: { }
+            - regex:
+                expression: ^(?P<time>\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2}.\d{3})\s+\d+\s+\[(?P<thread>\S+)\]\s(?P<level>INFO|DEBUG|ERROR|TRACE)\s+(?P<context>\S+) - (?P<message>(?s:.*))$
+                source: output
+            - multiline:
+                firstline: ^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2}.\d{3}
+                max_wait_time: 3s
+            - labels:
+                level:
