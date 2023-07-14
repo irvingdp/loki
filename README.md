@@ -2,12 +2,12 @@ LOKI setup from docker
 
 loki
 ```
-docker run -d --name loki -v $(pwd):/mnt/config -p 3100:3100 grafana/loki:2.2.1 -config.file=/mnt/config/loki-config.yaml
+docker run -d --name loki -v $(pwd):/mnt/config -p 3100:3100 grafana/loki:2.8.0 -config.file=/mnt/config/loki-config.yaml
 ```
 
 promtail
 ```
-docker run -d --name promtail --link loki -v $(pwd):/mnt/config -v /var/log:/var/log grafana/promtail:2.2.1 -config.file=/mnt/config/promtail-config.yaml
+docker run -d --name promtail --link loki -v $(pwd):/mnt/config -v /var/log:/var/log grafana/promtail:2.8.0 -config.file=/mnt/config/promtail-config.yaml
 ```
 
 grafana
